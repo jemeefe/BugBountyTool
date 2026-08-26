@@ -8,17 +8,17 @@ Framework semi-automatizado para Bug Bounty en Python con pipeline modular, chec
 
 ![BugBountyTool](https://img.shields.io/github/stars/jemeefe/BugBountyTool?style=social)
 
-## ✨ Características
+## Características
 
-- 🚀 **Pipeline modular** con fases independientes y reutilizables
-- 🔄 **Persistencia inteligente** con checkpoints para reanudar después de fallos
-- ⚙️ **Configuración flexible** mediante YAML
-- ⚡ **Rate-limiting configurabile** para evitar WAF detection (especialmente con nuclei)
-- 📊 **Reportes HTML y JSON** con priorización de findings
-- 🐍 **Sin dependencias externas pesadas** - solo Python y herramientas CLI
-- 🛠️ **Fácil instalación** como cualquier herramienta CLI (nmap, httpx, etc.)
+- **Pipeline modular** con fases independientes y reutilizables
+- **Persistencia inteligente** con checkpoints para reanudar después de fallos
+- **Configuración flexible** mediante YAML
+- **Rate-limiting configurabile** para evitar WAF detection (especialmente con nuclei)
+- **Reportes HTML y JSON** con priorización de findings
+- **Sin dependencias externas pesadas** - solo Python y herramientas CLI
+- **Fácil instalación** como cualquier herramienta CLI (nmap, httpx, etc.)
 
-## 📋 Requisitos
+## Requisitos
 
 1. **Python 3.10+**
 2. **Herramientas requeridas en el PATH**:
@@ -36,7 +36,7 @@ Framework semi-automatizado para Bug Bounty en Python con pipeline modular, chec
 | dalfox | Testing de XSS | `go install github.com/hahwul/dalfox/v2@latest` |
 | qsreplace | Reemplazar parámetros en URLs | `go install github.com/tomnomnom/qsreplace@latest` |
 
-## 🚀 Instalación en Kali Linux
+## Instalación en Kali Linux
 
 ### Opción 1: Instalación pip (recomendada)
 
@@ -138,7 +138,7 @@ bugbountytool example.com --no-checkpoint
 bugbountytool example.com -c /path/to/custom-config.yaml
 ```
 
-## 🎯 Fases del Pipeline
+## Fases del Pipeline
 
 | Fase | Herramienta | Input | Output |
 |------|-------------|-------|--------|
@@ -149,7 +149,7 @@ bugbountytool example.com -c /path/to/custom-config.yaml
 | **5. Crawling** | waybackurls, gau, ffuf | Hosts vivos | Endpoints |
 | **6. Parameter** | subjs, dalfox | Hosts vivos | Parámetros (JSON) |
 
-## 🏗️ Estructura del Proyecto
+## Estructura del Proyecto
 
 ```
 BugBountyTool/
@@ -188,7 +188,7 @@ BugBountyTool/
 └── CONTRIBUTING.md
 ```
 
-## ⚙️ Configuración
+## Configuración
 
 El archivo `config/config.yaml` permite personalizar:
 
@@ -212,7 +212,7 @@ nuclei:
     - "exposed-panels"
 ```
 
-## 🔄 Persistencia y Reanudación
+## Persistencia y Reanudación
 
 El sistema automáticamente crea checkpoints después de cada fase. Si el pipeline se interrumpe, al ejecutar de nuevo se reanudará desde la última fase completada.
 
@@ -221,7 +221,7 @@ Para desactivar esta funcionalidad:
 bugbountytool example.com --no-checkpoint
 ```
 
-## 📊 Reportes
+## Reportes
 
 Tras completar el pipeline se generan en `outputs/reports/`:
 
@@ -243,28 +243,27 @@ sudo rm /usr/local/bin/bugbountytool
 sudo rm -rf /opt/bugbountytool
 ```
 
-## 🤝 Contribuir
+## Contribuir
 
 ¡Las contribuciones son bienvenidas! Por favor, lee [CONTRIBUTING.md](CONTRIBUTING.md) para obtener detalles sobre nuestro código de conducta y el proceso para enviar pull requests.
 
-## 🐛 Issues
+## Issues
 
 Si encuentras un bug o tienes una sugerencia de mejora, por favor abre un issue en GitHub.
 
-## 📝 Licencia
+## Licencia
 
 Este proyecto está bajo la licencia MIT. Ver [LICENSE](LICENSE) para más detalles.
 
-## 🙏 Agradecimientos
+## Agradecimientos
 
 - [ProjectDiscovery](https://github.com/projectdiscovery) por sus increíbles herramientas
 - Todos los contribuidores y usuarios del proyecto
 
-## 📞 Contacto
+## Contacto
 
-- GitHub: [@yourusername](https://github.com/yourusername)
-- Twitter: [@yourtwitter](https://twitter.com/yourtwitter)
-
+- GitHub: [@jemeefe](https://github.com/jemeefe)
+- Linkedin: [Jordi Marín Fiol](https://www.linkedin.com/in/jordi-marin-fiol/)
 ---
 
 ⭐️ Si te gusta el proyecto, no olvides darle una estrella!
