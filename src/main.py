@@ -388,24 +388,37 @@ class BugBountyPipeline:
         self.logger.info(f"Directorio base: {self.base_dir}")
         self.logger.info(f"{'=' * 60}\n")
 
+        failed_phases = []
+
         try:
             # Fase 1: Descubrimiento
             subdomains = self.run_phase_discovery()
             if not subdomains:
-                self.logger.warning("No se descubrieron subdominios. Saliendo.")
-                return False
+                self.logger.warning("No se descubrieron subdominios.")
+                failed_phases.append("Discovery")
+                subdomains = []
 
             # Fase 2: Filtrado
-            live_hosts = self.run_phase_filtering(subdomains)
-            if not live_hosts:
-                self.logger.warning("No se encontraron hosts vivos. Saliendo.")
-                return False
+            live_hosts = []
+            if subdomains:
+                live_hosts = self.run_phase_filtering(subdomains)
+                if not live_hosts:
+                    self.logger.warning("No se encontraron hosts vivos.")
+                    failed_phases.append("Filtering")
+            else:
+                self.logger.warning("Saltando fase de filtrado (sin subdominios).")
+                failed_phases.append("Filtering (skipped)")
 
             # Fase 3: Escaneo
-            scan_results = self.run_phase_scanning(live_hosts)
-            if not scan_results:
-                self.logger.warning("El escaneo no produjo resultados.")
-                return False
+            scan_results = []
+            if live_hosts:
+                scan_results = self.run_phase_scanning(live_hosts)
+                if not scan_results:
+                    self.logger.warning("El escaneo no produjo resultados.")
+                    failed_phases.append("Scanning")
+            else:
+                self.logger.warning("Saltando fase de escaneo (sin hosts vivos).")
+                failed_phases.append("Scanning (skipped)")
 
             # Fases adicionales si full_pipeline es True
             vulnerabilities = []
@@ -413,13 +426,31 @@ class BugBountyPipeline:
             parameters = []
 
             if full_pipeline and self.config.is_tool_enabled("nuclei"):
-                vulnerabilities = self.run_phase_vulnerability(live_hosts)
+                if live_hosts:
+                    vulnerabilities = self.run_phase_vulnerability(live_hosts)
+                    if not vulnerabilities:
+                        failed_phases.append("Vulnerability")
+                else:
+                    self.logger.warning("Saltando fase de vulnerabilidad (sin hosts vivos).")
+                    failed_phases.append("Vulnerability (skipped)")
 
             if full_pipeline and self.config.is_tool_enabled("waybackurls"):
-                endpoints = self.run_phase_crawling(live_hosts)
+                if live_hosts:
+                    endpoints = self.run_phase_crawling(live_hosts)
+                    if not endpoints:
+                        failed_phases.append("Crawling")
+                else:
+                    self.logger.warning("Saltando fase de crawling (sin hosts vivos).")
+                    failed_phases.append("Crawling (skipped)")
 
             if full_pipeline and self.config.is_tool_enabled("subjs"):
-                parameters = self.run_phase_parameter(live_hosts)
+                if live_hosts:
+                    parameters = self.run_phase_parameter(live_hosts)
+                    if not parameters:
+                        failed_phases.append("Parameter")
+                else:
+                    self.logger.warning("Saltando fase de parameter discovery (sin hosts vivos).")
+                    failed_phases.append("Parameter (skipped)")
 
             # Generar reporte
             report_path = self.generate_report(
@@ -438,11 +469,17 @@ class BugBountyPipeline:
             # Resumen final
             self._print_summary()
 
+            # Mostrar fases fallidas si las hay
+            if failed_phases:
+                self.logger.warning(f"\n{'=' * 60}")
+                self.logger.warning(f"Fases con problemas o sin resultados: {', '.join(failed_phases)}")
+                self.logger.warning(f"{'=' * 60}\n")
+
             self.logger.info(f"\n{'=' * 60}")
-            self.logger.info("Pipeline completado con éxito")
+            self.logger.info("Pipeline completado")
             self.logger.info(f"{'=' * 60}\n")
 
-            return True
+            return len(failed_phases) == 0
 
         except Exception as e:
             self.logger.error(f"Error en el pipeline: {str(e)}")

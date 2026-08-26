@@ -33,8 +33,21 @@ def setup_logger(
     if logger.handlers:
         return logger
 
-    # Formato de logs
-    formatter = logging.Formatter(
+    # Formato de logs con colores para consola
+    class ColorFormatter(logging.Formatter):
+        RED = '\033[91m'
+        YELLOW = '\033[93m'
+        RESET = '\033[0m'
+
+        def format(self, record):
+            msg = super().format(record)
+            if record.levelno == logging.WARNING:
+                msg = f"{self.YELLOW}{msg}{self.RESET}"
+            elif record.levelno >= logging.ERROR:
+                msg = f"{self.RED}{msg}{self.RESET}"
+            return msg
+
+    formatter = ColorFormatter(
         "%(asctime)s - %(levelname)s - %(name)s - %(message)s"
     )
 
