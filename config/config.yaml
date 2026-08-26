@@ -1,0 +1,106 @@
+# BugBountyTool Configuration
+# Versión: 2.0.0
+
+target:
+  domain: ""  # Dominio principal a analizar (ej: example.com)
+  output_dir: "outputs"  # Directorio donde se guardarán los resultados
+
+# Configuración de herramientas por fase
+tools:
+
+  # Fase 1: Descubrimiento de subdominios
+  subfinder:
+    enabled: true
+    path: "subfinder"
+    options:
+      - "-all"
+      - "-timeout" "5"
+      - "-recursive"
+
+  # Fase 2: Verificación de hosts vivos
+  httpx:
+    enabled: true
+    path: "httpx"
+    options:
+      - "-timeout" "10"
+      - "-retries" "2"
+      - "-t" "100"
+      - "-silent"
+
+  # Fase 3: Escaneo de puertos
+  nmap:
+    enabled: true
+    path: "nmap"
+    options:
+      - "-sV"
+      - "-sC"
+      - "-T4"
+      - "-v"
+
+  # Fase 4: Vulnerability scanning (nuclei)
+  nuclei:
+    enabled: true
+    path: "nuclei"
+    options:
+      - "-silent"
+      - "-json"
+    # Rate limiting para evitar WAF detection
+    rate_limit:
+      enabled: true
+      requests_per_second: 5
+      delay_between_requests: 0.2
+    # Templates a usar (poc, cves, exposed-panels, etc.)
+    templates:
+      - "poc"
+      - "cves"
+      - "exposed-panels"
+      - "exposed-files"
+      - "misconfiguration"
+
+  # Fase 5: Crawling y discovery
+  waybackurls:
+    enabled: true
+    path: "waybackurls"
+
+  gau:
+    enabled: true
+    path: "gau"
+
+  ffuf:
+    enabled: true
+    path: "ffuf"
+
+  # Fase 6: Parameter discovery
+  subjs:
+    enabled: true
+    path: "subjs"
+
+  dalfox:
+    enabled: true
+    path: "dalfox"
+
+  qsreplace:
+    enabled: true
+    path: "qsreplace"
+
+# Configuración del pipeline
+pipeline:
+  # Nombres de las fases en orden
+  phases:
+    - discovery
+    - filtering
+    - scanning
+    - vulnerability
+    - crawling
+    - parameter
+  # Mantener resultados intermedios (true/false)
+  keep_intermediates: true
+  # Usar checkpoints para reanudar
+  use_checkpoints: true
+
+# Configuración de logging
+logging:
+  level: "INFO"  # DEBUG, INFO, WARNING, ERROR, CRITICAL
+  format: "%(asctime)s - %(levelname)s - %(name)s - %(message)s"
+  file: "logs/bug_bounty_tool.log"
+  console: true

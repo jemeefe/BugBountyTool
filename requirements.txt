@@ -1,0 +1,18 @@
+# BugBountyTool - Dependencies
+# Versión mínima de Python recomendada: 3.10
+
+# Dependencias externas
+pyyaml>=6.0
+
+# Utilidades estándar de Python (sin dependencias externas):
+# - subprocess
+# - logging
+# - pathlib
+# - argparse
+# - json
+# - datetime
+# - time
+# - os
+# - sys
+# - hashlib (para checksums de checkpoint)
+# - concurrent.futures (para paralelismo)
