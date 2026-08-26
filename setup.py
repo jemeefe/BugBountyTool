@@ -1,5 +1,6 @@
 # setup.py para BugBountyTool
-# Este archivo es necesario para que pip instale el paquete correctamente
+# Este archivo permite la instalación del paquete localmente o vía pipx
+# Ejecuta pip/pipx con la metadata definida en setup.cfg
 
 from setuptools import setup
 

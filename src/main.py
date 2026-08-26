@@ -26,6 +26,7 @@ if __name__ == "__main__":
     try:
         from utils.logger import setup_logger
         from utils.config import load_config, Config
+        from utils.dependencies import check_dependencies, check_go_installation
         from core.checkpoint import CheckpointManager, load_checkpoint
         from utils.reporter import ReportGenerator
         from phases.discovery import DiscoveryPhase
@@ -41,6 +42,7 @@ if __name__ == "__main__":
 
         from utils.logger import setup_logger
         from utils.config import load_config, Config
+        from utils.dependencies import check_dependencies, check_go_installation
         from core.checkpoint import CheckpointManager, load_checkpoint
         from utils.reporter import ReportGenerator
         from phases.discovery import DiscoveryPhase
@@ -48,6 +50,7 @@ if __name__ == "__main__":
         from phases.scanning import ScanningPhase
         from phases.vulnerability import VulnerabilityPhase
         from phases.crawling import CrawlingPhase
+        from phases.parameter import ParameterPhase
         from phases.parameter import ParameterPhase
 
 from utils.logger import setup_logger
@@ -515,8 +518,17 @@ def main():
         action="store_true",
         help="Ejecuta solo las fases básicas (1-3)"
     )
+    parser.add_argument(
+        "--skip-deps-check",
+        action="store_true",
+        help="Omite la verificación de dependencias"
+    )
 
     args = parser.parse_args()
+
+    # Verificar dependencias antes de comenzar
+    if not args.skip_deps_check:
+        check_dependencies(strict=False)
 
     # Cargar configuración
     config_path = Path(args.config) if args.config else Path(args.dir) / "config" / "config.yaml"
