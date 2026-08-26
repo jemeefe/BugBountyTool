@@ -27,7 +27,7 @@ tools:
       - "10"
       - "-retries"
       - "2"
-      - "-t"
+      - "-threads"
       - "100"
       - "-silent"
 

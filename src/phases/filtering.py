@@ -81,12 +81,12 @@ class FilteringPhase(BasePhase):
         temp_input.write_text("\n".join(subdomains) + "\n")
 
         # Comando para httpx
-        # httpx -l subdomains.txt -timeout 10 -retries 2 -t 100 -silent
+        # httpx -list subdomains.txt -timeout 10 -retries 2 -threads 100 -silent
         args = [
-            "-l", str(temp_input),
+            "-list", str(temp_input),
             "-timeout", "10",
             "-retries", "2",
-            "-t", "100",
+            "-threads", "100",
             "-silent"
         ]
 
