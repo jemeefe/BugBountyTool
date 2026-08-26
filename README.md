@@ -42,7 +42,7 @@ Framework semi-automatizado para Bug Bounty en Python con pipeline modular, chec
 
 ```bash
 # Clonar el repositorio
-git clone https://github.com/yourusername/bugbountytool.git
+git clone https://github.com/jemeefe/bugbountytool.git
 cd bugbountytool
 
 # Instalar como paquete Python
@@ -56,7 +56,7 @@ bugbountytool --help
 
 ```bash
 # Clonar y ejecutar script
-git clone https://github.com/yourusername/bugbountytool.git
+git clone https://github.com/jemeefe/bugbountytool.git
 cd bugbountytool
 sudo bash install.sh
 ```
@@ -83,7 +83,7 @@ source ~/.bashrc  # o ~/.zshrc
 
 ```bash
 # Clonar y entrar en el directorio
-git clone https://github.com/yourusername/bugbountytool.git
+git clone https://github.com/jemeefe/bugbountytool.git
 cd bugbountytool
 
 # Instalar dependencias
