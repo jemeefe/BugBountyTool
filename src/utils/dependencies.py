@@ -3,6 +3,7 @@ Dependency checker para BugBountyTool.
 Verifica que las herramientas CLI requeridas estén instaladas.
 """
 
+import os
 import shutil
 import sys
 from typing import Dict, List, Tuple
@@ -28,6 +29,11 @@ def check_command(command: str) -> bool:
     Returns:
         bool: True si el comando existe, False si no
     """
+    # Asegurar que ~/go/bin esté en el PATH
+    go_bin = os.path.expanduser("~/go/bin")
+    if go_bin not in os.environ.get("PATH", ""):
+        os.environ["PATH"] = f"{go_bin}:{os.environ.get('PATH', '')}"
+
     return shutil.which(command) is not None
 
 
@@ -86,14 +92,27 @@ def install_tool(tool: str) -> bool:
 
     try:
         print(f"  {Colors.BLUE}→{Colors.END} Instalando {tool}...")
+
+        # Asegurar que GOPATH esté configurado
+        go_path = os.path.expanduser("~/go")
+        env = os.environ.copy()
+        env["GOPATH"] = go_path
+        env["PATH"] = f"{go_path}/bin:{env.get('PATH', '')}"
+
         result = subprocess.run(
             install_commands[tool],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
-            timeout=300  # 5 minutos timeout
+            timeout=300,  # 5 minutos timeout
+            env=env
         )
 
         if result.returncode == 0:
+            # Actualizar PATH globalmente después de instalar
+            go_bin = os.path.expanduser("~/go/bin")
+            if go_bin not in os.environ.get("PATH", ""):
+                os.environ["PATH"] = f"{go_bin}:{os.environ.get('PATH', '')}"
+
             print(f"  {Colors.GREEN}✓{Colors.END} {tool} instalado correctamente")
             return True
         else:
@@ -209,24 +228,48 @@ def check_dependencies(strict: bool = False, auto_install: bool = True) -> Tuple
                     else:
                         failed.append(tool)
 
+                # Verificar nuevamente las herramientas instaladas
+                print(f"\n{Colors.BOLD}Verificando instalaciones...{Colors.END}")
+                actually_installed = []
+                still_missing = []
+
+                for tool in installed:
+                    if check_command(tool):
+                        actually_installed.append(tool)
+                    else:
+                        still_missing.append(tool)
+                        failed.append(tool)
+
                 # Resumen
                 print(f"\n{Colors.BOLD}Resumen de instalación:{Colors.END}")
-                if installed:
-                    print(f"{Colors.GREEN}✓ Instaladas correctamente ({len(installed)}):{Colors.END}")
-                    for tool in installed:
+                if actually_installed:
+                    print(f"{Colors.GREEN}✓ Instaladas y verificadas ({len(actually_installed)}):{Colors.END}")
+                    for tool in actually_installed:
                         print(f"  - {tool}")
+
+                if still_missing:
+                    print(f"\n{Colors.YELLOW}⚠ Instaladas pero no detectadas en PATH ({len(still_missing)}):{Colors.END}")
+                    for tool in still_missing:
+                        print(f"  - {tool}")
+                    print(f"\n{Colors.YELLOW}Solución: Cierra y vuelve a abrir tu terminal, o ejecuta:{Colors.END}")
+                    print(f"  {Colors.BLUE}export PATH=\"$HOME/go/bin:$PATH\"{Colors.END}")
 
                 if failed:
-                    print(f"\n{Colors.RED}✗ Falló la instalación ({len(failed)}):{Colors.END}")
+                    print(f"\n{Colors.RED}✗ Falló la instalación ({len([x for x in failed if x not in still_missing])}):{Colors.END}")
                     for tool in failed:
-                        print(f"  - {tool}")
-                        print(f"    Comando manual: {Colors.BLUE}{get_install_command(tool)}{Colors.END}")
+                        if tool not in still_missing:
+                            print(f"  - {tool}")
+                            print(f"    Comando manual: {Colors.BLUE}{get_install_command(tool)}{Colors.END}")
 
                 # Actualizar estado
-                if not failed:
+                if not failed or all(t in still_missing for t in failed):
                     all_ok = True
                     missing_tools = []
-                    print(f"\n{Colors.GREEN}{Colors.BOLD}✓ Todas las herramientas instaladas correctamente{Colors.END}")
+                    if still_missing:
+                        print(f"\n{Colors.GREEN}{Colors.BOLD}✓ Todas las herramientas instaladas{Colors.END}")
+                        print(f"{Colors.YELLOW}Nota: Reinicia tu terminal para usar las herramientas recién instaladas.{Colors.END}")
+                    else:
+                        print(f"\n{Colors.GREEN}{Colors.BOLD}✓ Todas las herramientas instaladas correctamente{Colors.END}")
                 else:
                     all_ok = False
                     missing_tools = failed

@@ -14,7 +14,8 @@ tools:
     path: "subfinder"
     options:
       - "-all"
-      - "-timeout" "5"
+      - "-timeout"
+      - "5"
       - "-recursive"
 
   # Fase 2: Verificación de hosts vivos
@@ -22,9 +23,12 @@ tools:
     enabled: true
     path: "httpx"
     options:
-      - "-timeout" "10"
-      - "-retries" "2"
-      - "-t" "100"
+      - "-timeout"
+      - "10"
+      - "-retries"
+      - "2"
+      - "-t"
+      - "100"
       - "-silent"
 
   # Fase 3: Escaneo de puertos
