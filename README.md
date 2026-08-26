@@ -1,24 +1,23 @@
-# 🛡️ BugBountyTool
+# BugBountyTool
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
-[![Status](https://img.shields.io/badge/status-beta-orange.svg)](https://github.com/yourusername/bugbountytool)
+[![Status](https://img.shields.io/badge/status-beta-orange.svg)](https://github.com/jemeefe/BugBountyTool)
 
 Framework semi-automatizado para Bug Bounty en Python con pipeline modular, checkpoints y reportes inteligentes.
 
-![BugBountyTool](https://img.shields.io/github/stars/yourusername/bugbountytool?style=social)
+## Características
 
-## ✨ Características
+- **Pipeline modular** con fases independientes y reutilizables
+- **Persistencia inteligente** con checkpoints para reanudar después de fallos
+- **Configuración flexible** mediante YAML
+- **Rate-limiting configurable** para evitar WAF detection (especialmente con nuclei)
+- **Reportes HTML y JSON** con priorización de findings
+- **Sin dependencias externas pesadas** - solo Python y herramientas CLI
+- **Instalación plug and play** con script automatizado y verificación de dependencias
+- **Compatible con pip/pipx** para instalación estándar de Python
 
-- 🚀 **Pipeline modular** con fases independientes y reutilizables
-- 🔄 **Persistencia inteligente** con checkpoints para reanudar después de fallos
-- ⚙️ **Configuración flexible** mediante YAML
-- ⚡ **Rate-limiting configurabile** para evitar WAF detection (especialmente con nuclei)
-- 📊 **Reportes HTML y JSON** con priorización de findings
-- 🐍 **Sin dependencias externas pesadas** - solo Python y herramientas CLI
-- 🛠️ **Fácil instalación** como cualquier herramienta CLI (nmap, httpx, etc.)
-
-## 📋 Requisitos
+## Requisitos
 
 1. **Python 3.10+**
 2. **Herramientas requeridas en el PATH**:
@@ -36,64 +35,90 @@ Framework semi-automatizado para Bug Bounty en Python con pipeline modular, chec
 | dalfox | Testing de XSS | `go install github.com/hahwul/dalfox/v2@latest` |
 | qsreplace | Reemplazar parámetros en URLs | `go install github.com/tomnomnom/qsreplace@latest` |
 
-## 🚀 Instalación en Kali Linux
+## Instalación
 
-### Opción 1: Instalación pip (recomendada)
+### Opción 1: Script automatizado (Recomendado)
+
+El script `install.sh` detecta automáticamente tu distribución Linux y configura todo:
 
 ```bash
 # Clonar el repositorio
-git clone https://github.com/yourusername/bugbountytool.git
-cd bugbountytool
+git clone https://github.com/jemeefe/BugBountyTool.git
+cd BugBountyTool
+
+# Ejecutar instalación automatizada
+sudo bash install.sh
+```
+
+**Qué hace el script:**
+- Detecta tu distribución (Debian/Ubuntu/Kali, Arch Linux)
+- Instala dependencias base (git, nmap, Python 3.10+, Go)
+- Crea un virtual environment en `/opt/bugbountytool/venv`
+- Instala herramientas Go (subfinder, httpx, nuclei, waybackurls, gau)
+- Crea comando global `bugbountytool` con activación automática del venv
+- Verifica la instalación con colores y progreso visual
+
+### Opción 2: Instalación con pip
+
+```bash
+# Clonar el repositorio
+git clone https://github.com/jemeefe/BugBountyTool.git
+cd BugBountyTool
 
 # Instalar como paquete Python
-sudo pip3 install .
+pip install .
 
 # Verificar instalación
 bugbountytool --help
 ```
 
-### Opción 2: Script de instalación automatizada
+### Opción 3: Instalación con pipx (Aislado)
 
 ```bash
-# Clonar y ejecutar script
-git clone https://github.com/yourusername/bugbountytool.git
-cd bugbountytool
-sudo bash install.sh
+# Clonar el repositorio
+git clone https://github.com/jemeefe/BugBountyTool.git
+cd BugBountyTool
+
+# Instalar en entorno aislado
+pipx install .
+
+# Verificar instalación
+bugbountytool --help
 ```
 
-Este script:
-- Copia los archivos a `/opt/bugbountytool`
-- Instala dependencias Python
-- Crea un enlace simbólico en `/usr/local/bin/bugbountytool`
-
-### Opción 3: Añadir al PATH manualmente
-
-Añade este alias a tu `~/.bashrc` o `~/.zshrc`:
+### Opción 4: Ejecución manual
 
 ```bash
-alias bugbountytool='python3 /ruta/a/bugbountytool/src/main.py'
-```
+# Clonar el repositorio
+git clone https://github.com/jemeefe/BugBountyTool.git
+cd BugBountyTool
 
-Luego recarga tu shell:
-```bash
-source ~/.bashrc  # o ~/.zshrc
-```
+# Instalar dependencias Python
+pip install -r requirements.txt
 
-### Opción 4: Instalación manual con pip
-
-```bash
-# Clonar y entrar en el directorio
-git clone https://github.com/yourusername/bugbountytool.git
-cd bugbountytool
-
-# Instalar dependencias
-pip3 install -r requirements.txt
-
-# Ejecutar con Python
+# Ejecutar directamente
 python3 src/main.py example.com
 ```
 
-## 📖 Uso
+### Verificación de dependencias
+
+Al ejecutar por primera vez, la herramienta verifica automáticamente las dependencias:
+
+```bash
+bugbountytool example.com
+```
+
+Verás un output con colores indicando qué herramientas están instaladas:
+- ✓ (verde) = Herramienta instalada
+- ✗ (rojo) = Herramienta crítica faltante
+- ○ (amarillo) = Herramienta opcional faltante
+
+Para omitir esta verificación:
+```bash
+bugbountytool example.com --skip-deps-check
+```
+
+## Uso
 
 ### Básico
 ```bash
@@ -115,6 +140,7 @@ bugbountytool example.com -d /ruta/proyecto -v
 | `-v, --verbose` | Logging en modo DEBUG |
 | `--no-checkpoint` | Desactiva el uso de checkpoints |
 | `--minimal` | Ejecuta solo las fases básicas (1-3) |
+| `--skip-deps-check` | Omite la verificación de dependencias |
 
 ### Ejemplos de uso
 
@@ -136,9 +162,12 @@ bugbountytool example.com --no-checkpoint
 
 # Usar configuración personalizada
 bugbountytool example.com -c /path/to/custom-config.yaml
+
+# Omitir verificación de dependencias (más rápido)
+bugbountytool example.com --skip-deps-check
 ```
 
-## 🎯 Fases del Pipeline
+## Fases del Pipeline
 
 | Fase | Herramienta | Input | Output |
 |------|-------------|-------|--------|
@@ -149,7 +178,7 @@ bugbountytool example.com -c /path/to/custom-config.yaml
 | **5. Crawling** | waybackurls, gau, ffuf | Hosts vivos | Endpoints |
 | **6. Parameter** | subjs, dalfox | Hosts vivos | Parámetros (JSON) |
 
-## 🏗️ Estructura del Proyecto
+## Estructura del Proyecto
 
 ```
 BugBountyTool/
@@ -167,8 +196,12 @@ BugBountyTool/
 │   │   ├── __init__.py
 │   │   ├── logger.py        # Sistema de logging
 │   │   ├── config.py        # Carga de configuración YAML
+│   │   ├── dependencies.py  # Verificador de dependencias
 │   │   ├── helpers.py       # Utilidades comunes
 │   │   └── reporter.py      # Generación de reportes
+│   ├── core/
+│   │   ├── __init__.py
+│   │   └── checkpoint.py    # Sistema de persistencia
 │   └── phases/
 │       ├── __init__.py
 │       ├── phase.py         # Clase base para fases
@@ -180,15 +213,14 @@ BugBountyTool/
 │       └── parameter.py     # Fase 6: Parameters
 ├── setup.py                 # Configuración de instalación
 ├── setup.cfg                # Metadatos del paquete
-├── install.sh               # Script de instalación para Kali
+├── install.sh               # Script de instalación automatizada
 ├── requirements.txt
 ├── .gitignore
 ├── LICENSE
-├── README.md
-└── CONTRIBUTING.md
+└── README.md
 ```
 
-## ⚙️ Configuración
+## Configuración
 
 El archivo `config/config.yaml` permite personalizar:
 
@@ -212,7 +244,7 @@ nuclei:
     - "exposed-panels"
 ```
 
-## 🔄 Persistencia y Reanudación
+## Persistencia y Reanudación
 
 El sistema automáticamente crea checkpoints después de cada fase. Si el pipeline se interrumpe, al ejecutar de nuevo se reanudará desde la última fase completada.
 
@@ -221,50 +253,43 @@ Para desactivar esta funcionalidad:
 bugbountytool example.com --no-checkpoint
 ```
 
-## 📊 Reportes
+## Reportes
 
 Tras completar el pipeline se generan en `outputs/reports/`:
 
 - **Reporte HTML**: Visualización interactiva en el navegador con tablas y estadísticas
 - **Reporte JSON**: Estructura para integración con otras herramientas
 
-### Ejemplo de reporte HTML generado
-
-![Reporte HTML](https://img.shields.io/badge/report-HTML-green) (ver archivo en `outputs/reports/`)
-
-## 🗑️ Desinstalación
+## Desinstalación
 
 ```bash
-# Si instalaste con pip
-pip3 uninstall bugbountytool
+# Si instalaste con pip/pipx
+pip uninstall bugbountytool
+# o
+pipx uninstall bugbountytool
 
-# Si instalaste con el script
+# Si instalaste con el script automatizado
 sudo rm /usr/local/bin/bugbountytool
 sudo rm -rf /opt/bugbountytool
 ```
 
-## 🤝 Contribuir
+## Contribuir
 
-¡Las contribuciones son bienvenidas! Por favor, lee [CONTRIBUTING.md](CONTRIBUTING.md) para obtener detalles sobre nuestro código de conducta y el proceso para enviar pull requests.
+Las contribuciones son bienvenidas. Por favor, abre un issue o pull request en el repositorio.
 
-## 🐛 Issues
+## Issues
 
-Si encuentras un bug o tienes una sugerencia de mejora, por favor abre un issue en GitHub.
+Si encuentras un bug o tienes una sugerencia de mejora, por favor abre un issue en [GitHub](https://github.com/jemeefe/BugBountyTool/issues).
 
-## 📝 Licencia
+## Licencia
 
 Este proyecto está bajo la licencia MIT. Ver [LICENSE](LICENSE) para más detalles.
 
-## 🙏 Agradecimientos
+## Agradecimientos
 
 - [ProjectDiscovery](https://github.com/projectdiscovery) por sus increíbles herramientas
 - Todos los contribuidores y usuarios del proyecto
 
-## 📞 Contacto
-
-- GitHub: [@yourusername](https://github.com/yourusername)
-- Twitter: [@yourtwitter](https://twitter.com/yourtwitter)
-
 ---
 
-⭐️ Si te gusta el proyecto, no olvides darle una estrella!
+**Repositorio:** [https://github.com/jemeefe/BugBountyTool](https://github.com/jemeefe/BugBountyTool)
