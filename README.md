@@ -2,11 +2,11 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
-[![Status](https://img.shields.io/badge/status-beta-orange.svg)](https://github.com/yourusername/bugbountytool)
+[![Status](https://img.shields.io/badge/status-beta-orange.svg)](https://github.com/jemeefe/BugBountyTool)
 
 Framework semi-automatizado para Bug Bounty en Python con pipeline modular, checkpoints y reportes inteligentes.
 
-![BugBountyTool](https://img.shields.io/github/stars/yourusername/bugbountytool?style=social)
+![BugBountyTool](https://img.shields.io/github/stars/jemeefe/BugBountyTool?style=social)
 
 ## ✨ Características
 
