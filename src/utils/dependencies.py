@@ -56,12 +56,64 @@ def get_install_command(tool: str) -> str:
     return install_commands.get(tool, "Instalación manual requerida")
 
 
-def check_dependencies(strict: bool = False) -> Tuple[bool, List[str]]:
+def install_tool(tool: str) -> bool:
+    """
+    Instala una herramienta usando el comando apropiado.
+
+    Args:
+        tool: Nombre de la herramienta a instalar
+
+    Returns:
+        bool: True si la instalación fue exitosa
+    """
+    import subprocess
+
+    install_commands = {
+        "subfinder": ["go", "install", "github.com/projectdiscovery/subfinder/v2/cmd/subfinder@latest"],
+        "httpx": ["go", "install", "github.com/projectdiscovery/httpx/cmd/httpx@latest"],
+        "nmap": ["sudo", "apt", "install", "-y", "nmap"],
+        "nuclei": ["go", "install", "github.com/projectdiscovery/nuclei/v2/cmd/nuclei@latest"],
+        "waybackurls": ["go", "install", "github.com/tomnomnom/waybackurls@latest"],
+        "gau": ["go", "install", "github.com/lc/gau/v2/cmd/gau@latest"],
+        "ffuf": ["go", "install", "github.com/ffuf/ffuf@latest"],
+        "subjs": ["go", "install", "github.com/lc/subjs@latest"],
+        "dalfox": ["go", "install", "github.com/hahwul/dalfox/v2@latest"],
+        "qsreplace": ["go", "install", "github.com/tomnomnom/qsreplace@latest"],
+    }
+
+    if tool not in install_commands:
+        return False
+
+    try:
+        print(f"  {Colors.BLUE}→{Colors.END} Instalando {tool}...")
+        result = subprocess.run(
+            install_commands[tool],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            timeout=300  # 5 minutos timeout
+        )
+
+        if result.returncode == 0:
+            print(f"  {Colors.GREEN}✓{Colors.END} {tool} instalado correctamente")
+            return True
+        else:
+            print(f"  {Colors.RED}✗{Colors.END} Error instalando {tool}")
+            return False
+    except subprocess.TimeoutExpired:
+        print(f"  {Colors.RED}✗{Colors.END} Timeout instalando {tool}")
+        return False
+    except Exception as e:
+        print(f"  {Colors.RED}✗{Colors.END} Error: {str(e)}")
+        return False
+
+
+def check_dependencies(strict: bool = False, auto_install: bool = True) -> Tuple[bool, List[str]]:
     """
     Verifica todas las dependencias del pipeline.
 
     Args:
         strict: Si True, sale del programa si falta una herramienta crítica
+        auto_install: Si True, ofrece instalación automática interactiva
 
     Returns:
         Tuple[bool, List[str]]: (all_ok, missing_tools)
@@ -113,7 +165,83 @@ def check_dependencies(strict: bool = False) -> Tuple[bool, List[str]]:
     # Mostrar comandos de instalación si faltan herramientas
     missing_tools = missing_critical + missing_optional
 
-    if missing_critical:
+    if missing_tools and auto_install:
+        print("\n" + "=" * 60)
+        print(f"{Colors.BOLD}Herramientas faltantes detectadas:{Colors.END}")
+
+        if missing_critical:
+            print(f"\n{Colors.RED}Críticas:{Colors.END}")
+            for tool in missing_critical:
+                print(f"  - {tool}")
+
+        if missing_optional:
+            print(f"\n{Colors.YELLOW}Opcionales:{Colors.END}")
+            for tool in missing_optional:
+                print(f"  - {tool}")
+
+        print("\n" + "=" * 60)
+
+        # Preguntar si desea instalar
+        try:
+            response = input(f"\n{Colors.BOLD}¿Deseas instalar las herramientas faltantes automáticamente? (Y/N): {Colors.END}").strip().upper()
+
+            if response == 'Y':
+                print(f"\n{Colors.BOLD}Iniciando instalación automática...{Colors.END}\n")
+
+                # Verificar Go primero si hay herramientas Go
+                go_tools = [t for t in missing_tools if t != "nmap"]
+                if go_tools and not check_command("go"):
+                    print(f"{Colors.RED}ERROR: Go no está instalado.{Colors.END}")
+                    print("Instala Go primero:")
+                    print(f"  {Colors.BLUE}sudo apt install golang-go{Colors.END}")
+                    print(f"  {Colors.BLUE}# o: sudo pacman -S go{Colors.END}")
+                    if strict:
+                        sys.exit(1)
+                    return all_ok, missing_tools
+
+                # Instalar herramientas
+                installed = []
+                failed = []
+
+                for tool in missing_tools:
+                    if install_tool(tool):
+                        installed.append(tool)
+                    else:
+                        failed.append(tool)
+
+                # Resumen
+                print(f"\n{Colors.BOLD}Resumen de instalación:{Colors.END}")
+                if installed:
+                    print(f"{Colors.GREEN}✓ Instaladas correctamente ({len(installed)}):{Colors.END}")
+                    for tool in installed:
+                        print(f"  - {tool}")
+
+                if failed:
+                    print(f"\n{Colors.RED}✗ Falló la instalación ({len(failed)}):{Colors.END}")
+                    for tool in failed:
+                        print(f"  - {tool}")
+                        print(f"    Comando manual: {Colors.BLUE}{get_install_command(tool)}{Colors.END}")
+
+                # Actualizar estado
+                if not failed:
+                    all_ok = True
+                    missing_tools = []
+                    print(f"\n{Colors.GREEN}{Colors.BOLD}✓ Todas las herramientas instaladas correctamente{Colors.END}")
+                else:
+                    all_ok = False
+                    missing_tools = failed
+            else:
+                print(f"\n{Colors.YELLOW}Instalación manual requerida.{Colors.END}")
+                print("\nPara instalar manualmente, ejecuta:")
+                for tool in missing_tools:
+                    print(f"  {Colors.BLUE}{get_install_command(tool)}{Colors.END}")
+
+        except KeyboardInterrupt:
+            print(f"\n\n{Colors.YELLOW}Instalación cancelada por el usuario.{Colors.END}")
+            if strict:
+                sys.exit(1)
+
+    elif missing_critical:
         print(f"\n{Colors.RED}{Colors.BOLD}ERROR: Faltan herramientas críticas{Colors.END}")
         print("\nPara instalarlas, ejecuta:")
         for tool in missing_critical:
