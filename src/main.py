@@ -51,7 +51,6 @@ if __name__ == "__main__":
         from phases.vulnerability import VulnerabilityPhase
         from phases.crawling import CrawlingPhase
         from phases.parameter import ParameterPhase
-        from phases.parameter import ParameterPhase
 
 from utils.logger import setup_logger
 from utils.config import load_config, Config

@@ -155,30 +155,29 @@ def check_dependencies(strict: bool = False, auto_install: bool = True) -> Tuple
         "qsreplace": "Fase 6: Manipulación de parámetros",
     }
 
-    print(f"\n{Colors.BOLD}Verificando dependencias...{Colors.END}")
-    print("=" * 60)
+    print(f"\n{Colors.BOLD}Verificando dependencias...{Colors.END}", flush=True)
 
     missing_critical = []
     missing_optional = []
     all_ok = True
 
-    # Verificar herramientas críticas
-    print(f"\n{Colors.BOLD}Herramientas críticas:{Colors.END}")
+    # Verificar herramientas críticas (silencioso si todo OK)
+    critical_status = []
     for tool, description in critical_tools.items():
         if check_command(tool):
-            print(f"  {Colors.GREEN}✓{Colors.END} {tool:15} - {description}")
+            critical_status.append((tool, True))
         else:
-            print(f"  {Colors.RED}✗{Colors.END} {tool:15} - {description}")
+            critical_status.append((tool, False))
             missing_critical.append(tool)
             all_ok = False
 
-    # Verificar herramientas opcionales
-    print(f"\n{Colors.BOLD}Herramientas opcionales:{Colors.END}")
+    # Verificar herramientas opcionales (silencioso si todo OK)
+    optional_status = []
     for tool, description in optional_tools.items():
         if check_command(tool):
-            print(f"  {Colors.GREEN}✓{Colors.END} {tool:15} - {description}")
+            optional_status.append((tool, True))
         else:
-            print(f"  {Colors.YELLOW}○{Colors.END} {tool:15} - {description} (opcional)")
+            optional_status.append((tool, False))
             missing_optional.append(tool)
 
     # Mostrar comandos de instalación si faltan herramientas
@@ -301,9 +300,8 @@ def check_dependencies(strict: bool = False, auto_install: bool = True) -> Tuple
             print(f"  {Colors.BLUE}{get_install_command(tool)}{Colors.END}")
         print(f"\n{Colors.GREEN}Puedes continuar con el escaneo básico (fases 1-3).{Colors.END}")
     else:
-        print(f"\n{Colors.GREEN}{Colors.BOLD}✓ Todas las dependencias están instaladas{Colors.END}")
-
-    print("=" * 60 + "\n")
+        # Todo OK: completamente silencioso (sin ruido)
+        pass
 
     return all_ok, missing_tools
 
