@@ -30,7 +30,6 @@ if __name__ == "__main__":
         from core.checkpoint import CheckpointManager, load_checkpoint
         from utils.reporter import ReportGenerator
         from phases.discovery import DiscoveryPhase
-from utils.dependencies import resolve_tool_path
         from phases.filtering import FilteringPhase
         from phases.scanning import ScanningPhase
         from phases.vulnerability import VulnerabilityPhase
@@ -47,7 +46,6 @@ from utils.dependencies import resolve_tool_path
         from core.checkpoint import CheckpointManager, load_checkpoint
         from utils.reporter import ReportGenerator
         from phases.discovery import DiscoveryPhase
-from utils.dependencies import resolve_tool_path
         from phases.filtering import FilteringPhase
         from phases.scanning import ScanningPhase
         from phases.vulnerability import VulnerabilityPhase
@@ -60,7 +58,6 @@ from core.checkpoint import CheckpointManager, load_checkpoint
 from utils.reporter import ReportGenerator
 
 from phases.discovery import DiscoveryPhase
-from utils.dependencies import resolve_tool_path
 from phases.filtering import FilteringPhase
 from phases.scanning import ScanningPhase
 from phases.vulnerability import VulnerabilityPhase
@@ -607,7 +604,6 @@ if __name__ == "__main__":
     from core.checkpoint import CheckpointManager, load_checkpoint
     from utils.reporter import ReportGenerator
     from phases.discovery import DiscoveryPhase
-from utils.dependencies import resolve_tool_path
     from phases.filtering import FilteringPhase
     from phases.scanning import ScanningPhase
     from phases.vulnerability import VulnerabilityPhase
