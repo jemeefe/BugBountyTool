@@ -29,12 +29,49 @@ def check_command(command: str) -> bool:
     Returns:
         bool: True si el comando existe, False si no
     """
-    # Asegurar que ~/go/bin esté en el PATH
+    # Asegurar que ~/go/bin esté en el PATH (prioridad alta: projectdiscovery tools)
     go_bin = os.path.expanduser("~/go/bin")
     if go_bin not in os.environ.get("PATH", ""):
         os.environ["PATH"] = f"{go_bin}:{os.environ.get('PATH', '')}"
 
     return shutil.which(command) is not None
+
+
+# Rutas conocidas de binarios Go (projectdiscovery, lc, tomnomnom) que pueden
+# colisionar con paquetes del sistema (p.ej. httpx de Python en Kali).
+_GO_TOOL_DIRS = [
+    os.path.expanduser("~/go/bin"),
+    "/usr/local/go/bin",
+    "/opt/go/bin",
+]
+
+
+def resolve_tool_path(tool: str) -> str | None:
+    """
+    Resuelve la ruta absoluta correcta de un binario, priorizando la versión Go
+    (ProjectDiscovery, lc, tomnomnom) sobre cualquier binario del mismo nombre en
+    el PATH del sistema (p.ej. el paquete python3-httpx de Kali).
+
+    Args:
+        tool: Nombre del binario (p.ej. "httpx", "subfinder", "nuclei").
+
+    Returns:
+        str | None: Ruta absoluta si se encuentra, None en caso contrario.
+    """
+    # 1) Buscar primero en directorios Go conocidos (orden estable)
+    for d in _GO_TOOL_DIRS:
+        candidate = os.path.join(d, tool)
+        if os.path.isfile(candidate) and os.access(candidate, os.X_OK):
+            return candidate
+
+    # 2) Fallback al PATH (asegurarse de que ~/go/bin está delante)
+    go_bin = os.path.expanduser("~/go/bin")
+    current = os.environ.get("PATH", "")
+    if go_bin and go_bin not in current.split(os.pathsep):
+        os.environ["PATH"] = f"{go_bin}{os.pathsep}{current}"
+
+    found = shutil.which(tool)
+    return found
 
 
 def get_install_command(tool: str) -> str:
@@ -137,7 +174,7 @@ def check_dependencies(strict: bool = False, auto_install: bool = True) -> Tuple
     Returns:
         Tuple[bool, List[str]]: (all_ok, missing_tools)
     """
-    # Herramientas críticas (fases básicas 1-3)
+    # Usa resolve_tool_path para evitar colisiones con paquetes del sistema
     critical_tools = {
         "subfinder": "Fase 1: Descubrimiento de subdominios",
         "httpx": "Fase 2: Verificación de hosts vivos",
@@ -164,7 +201,8 @@ def check_dependencies(strict: bool = False, auto_install: bool = True) -> Tuple
     # Verificar herramientas críticas (silencioso si todo OK)
     critical_status = []
     for tool, description in critical_tools.items():
-        if check_command(tool):
+        path = resolve_tool_path(tool)
+        if path:
             critical_status.append((tool, True))
         else:
             critical_status.append((tool, False))
@@ -174,7 +212,8 @@ def check_dependencies(strict: bool = False, auto_install: bool = True) -> Tuple
     # Verificar herramientas opcionales (silencioso si todo OK)
     optional_status = []
     for tool, description in optional_tools.items():
-        if check_command(tool):
+        path = resolve_tool_path(tool)
+        if path:
             optional_status.append((tool, True))
         else:
             optional_status.append((tool, False))

@@ -9,6 +9,7 @@ from typing import List, Optional
 
 from core.phase import BasePhase
 from utils.helpers import run_command, deduplicate_list, clean_subdomain
+from utils.dependencies import resolve_tool_path
 
 
 class FilteringPhase(BasePhase):
@@ -90,6 +91,15 @@ class FilteringPhase(BasePhase):
             "-silent"
         ]
 
+        # Resolver binario real (prioriza ~/go/bin/httpx sobre paquetes del sistema)
+        resolved_path = resolve_tool_path("httpx")
+        if resolved_path:
+            self.tool_path = resolved_path
+            self.logger.info(f"Binario httpx resuelto: {self.tool_path}")
+        else:
+            # Fallback al valor recibido (puede ser la ruta del config)
+            self.logger.info(f"Usando ruta configurada para httpx: {self.tool_path}")
+
         self.logger.info(f"Ejecutando: {self.tool_path} {' '.join(args)}")
 
         # Ejecutar comando
@@ -99,8 +109,23 @@ class FilteringPhase(BasePhase):
         if temp_input.exists():
             temp_input.unlink()
 
+        # Detectar fallos críticos: binario incorrecto (Usage: ... / No such option)
+        stderr_combined = (stderr or "") + (stdout or "")
         if not success:
-            self.logger.warning(f"httpx falló: {stderr}")
+            if "Usage:" in stderr_combined or "No such option" in stderr_combined or "Invalid usage" in stderr_combined:
+                self.logger.error(
+                    f"FALLO CRÍTICO DEL BINARIO: se detectó el binario incorrecto de 'httpx'.\n"
+                    f"Comando intentado: '{self.tool_path}'\n"
+                    f"Error recibido: {stderr_combined.strip()}\n"
+                    f"SOLUCIÓN: Asegúrate de que el binario Go de ProjectDiscovery esté disponible.\n"
+                    f"  - Si usas 'go install', verifica que ~/go/bin/httpx exista.\n"
+                    f"  - Ruta resuelta por el sistema: {self.tool_path}\n"
+                    f"  - Si el sistema tiene 'python3-httpx' instalado (p.ej. en Kali),\n"
+                    f"    eso sobrescribe el binario Go. Remueve el paquete del sistema\n"
+                    f"    o usa la ruta absoluta al binario Go en config/config.yaml."
+                )
+            else:
+                self.logger.warning(f"httpx falló: {stderr_combined}")
             self.save_results([], "live_hosts.txt")
             return []
 

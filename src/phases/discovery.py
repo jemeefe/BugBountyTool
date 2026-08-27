@@ -9,6 +9,7 @@ from typing import List, Optional
 
 from core.phase import BasePhase
 from utils.helpers import run_command, deduplicate_list, clean_subdomain
+from utils.dependencies import resolve_tool_path
 
 
 class DiscoveryPhase(BasePhase):
@@ -79,13 +80,28 @@ class DiscoveryPhase(BasePhase):
             "-recursive"
         ]
 
+        # Resolver binario real (prioriza ~/go/bin/subfinder)
+        resolved_path = resolve_tool_path("subfinder")
+        if resolved_path:
+            self.tool_path = resolved_path
+            self.logger.info(f"Binario subfinder resuelto: {self.tool_path}")
+
         self.logger.info(f"Ejecutando: {self.tool_path} {' '.join(args)}")
 
         # Ejecutar comando
         success, stdout, stderr = run_command(self.tool_path, args)
 
         if not success:
-            self.logger.warning(f"subfinder no encontrado o falló: {stderr}")
+            stderr_combined = (stderr or "") + (stdout or "")
+            if "Usage:" in stderr_combined or "No such option" in stderr_combined:
+                self.logger.error(
+                    f"FALLO CRÍTICO DEL BINARIO: se detectó el binario incorrecto de 'subfinder'.\n"
+                    f"Comando intentado: '{self.tool_path}'\n"
+                    f"Error: {stderr_combined.strip()}\n"
+                    f"SOLUCIÓN: Verifica que ~/go/bin/subfinder sea el binario Go de ProjectDiscovery."
+                )
+            else:
+                self.logger.warning(f"subfinder no encontrado o falló: {stderr_combined}")
             self.logger.info("Crea un archivo 'discovered_subdomains.txt' vacío")
             # Crear archivo vacío para no romper el pipeline
             self.save_results([], "discovered_subdomains.txt")
